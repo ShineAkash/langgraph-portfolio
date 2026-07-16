@@ -9,6 +9,7 @@ Deploy:
     Done — share the URL.
 """
 
+import os
 import operator
 import streamlit as st
 from dotenv import load_dotenv
@@ -24,21 +25,39 @@ st.set_page_config(
     layout="wide",
 )
 
-load_dotenv()
+# Load GROQ_API_KEY from Streamlit secrets (cloud) or .env (local).
+try:
+    os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
+except Exception:  # noqa: BLE001 — local dev, no secrets.toml
+    load_dotenv()
 
 # ---------- Model + structured output ----------
-@st.cache_resource
-def get_models():
-    model = ChatGroq(model="llama-3.3-70b-versatile")
-
-    class EvalutationSchema(BaseModel):
-        feedback: str = Field(description="Detailed feedback for the essay")
-        score: float = Field(description="The score out of 10", ge=0, le=10)
-
-    return model, model.with_structured_output(EvalutationSchema)
+class EvalutationSchema(BaseModel):
+    feedback: str = Field(description="Detailed feedback for the essay")
+    score: float = Field(description="The score out of 10", ge=0, le=10)
 
 
-model, structured_model = get_models()
+def _build_structured_model(model_name: str):
+    """Build a structured-output model for a given Groq model name."""
+    return ChatGroq(model=model_name).with_structured_output(EvalutationSchema)
+
+
+# Ordered fallback list. Some models occasionally fail Groq's tool-use parser;
+# we retry, then fall back to a smaller, more stable model.
+_MODEL_CHAIN = (
+    "llama-3.3-70b-versatile",
+    "llama-3.1-8b-instant",
+)
+
+
+def _invoke_with_fallback(prompt: str) -> EvalutationSchema:
+    last_err = None
+    for name in _MODEL_CHAIN:
+        try:
+            return _build_structured_model(name).invoke(prompt)
+        except Exception as e:  # noqa: BLE001 — we want to catch any groq error
+            last_err = e
+    raise last_err  # type: ignore[misc]
 
 
 # ---------- State + node functions ----------
@@ -57,7 +76,7 @@ def evaluate_language(state: UPSCState) -> UPSCState:
         "Evaluate the language and grammar of the following essay and "
         f"provide feedback and assign a score out of 10.\n {state['essay']}"
     )
-    result = structured_model.invoke(prompt)
+    result = _invoke_with_fallback(prompt)
     return {"language_feedback": result.feedback, "individual_scores": [result.score]}
 
 
@@ -66,7 +85,7 @@ def evaluate_analysis(state: UPSCState) -> UPSCState:
         "Evaluate the depth of analysis of the following essay and "
         f"provide feedback and assign a score out of 10.\n {state['essay']}"
     )
-    result = structured_model.invoke(prompt)
+    result = _invoke_with_fallback(prompt)
     return {"analysis_feedback": result.feedback, "individual_scores": [result.score]}
 
 
@@ -75,11 +94,13 @@ def evaluate_thought(state: UPSCState) -> UPSCState:
         "Evaluate the clarity of thought of the following essay and "
         f"provide feedback and assign a score out of 10.\n {state['essay']}"
     )
-    result = structured_model.invoke(prompt)
+    result = _invoke_with_fallback(prompt)
     return {"clarity_feedback": result.feedback, "individual_scores": [result.score]}
 
 
 def final_evaluation(state: UPSCState) -> UPSCState:
+    # Aggregator doesn't need structured output — use the primary model directly
+    primary = ChatGroq(model=_MODEL_CHAIN[0])
     prompt = (
         "Based on the following feedbacks, provide a summarized feedback "
         f"for the essay:\n"
@@ -87,11 +108,12 @@ def final_evaluation(state: UPSCState) -> UPSCState:
         f"Analysis Feedback: {state['analysis_feedback']}\n"
         f"Clarity Feedback: {state['clarity_feedback']}"
     )
-    overall_feedback = model.invoke(prompt).content
+    overall_feedback = primary.invoke(prompt).content
     avg_score = sum(state["individual_scores"]) / len(state["individual_scores"])
     return {"overall_feedback": overall_feedback, "avg_score": avg_score}
 
 
+# ---------- Graph ----------
 @st.cache_resource
 def build_graph():
     graph = StateGraph(UPSCState)
