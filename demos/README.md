@@ -2,6 +2,8 @@
 
 ## `upsc_essay_app.py` — UPSC Essay Evaluator
 
+**🚀 [upsc-essay-evaluatorr.streamlit.app](https://upsc-essay-evaluatorr.streamlit.app/)**
+
 A Streamlit app wrapping the [UPSC essay evaluator](../projects/09-upsc-essay-evaluator/).
 
 Three LLM evaluators (language, analysis, clarity of thought) run in

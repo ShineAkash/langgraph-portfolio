@@ -9,8 +9,8 @@ LangChain's framework for building stateful, graph-based LLM applications.
 The progression is deliberate — each project introduces one or two new
 concepts on top of the previous one.
 
-> **Live demo** of the flagship project: try the [UPSC Essay Evaluator](demos/README.md)
-> in your browser.
+> **🚀 Live demo:** [upsc-essay-evaluatorr.streamlit.app](https://upsc-essay-evaluatorr.streamlit.app/)
+> — try the UPSC Essay Evaluator in your browser (no install needed).
 
 ---
 
@@ -66,7 +66,7 @@ The same shape as a production multi-agent evaluator
 (LLM-as-a-judge, [Constitutional AI](https://www.anthropic.com/news/claudes-constitution),
 etc.): many specialised critics running concurrently, then aggregation.
 
-**Try it without installing anything** — the Streamlit demo is in [`demos/`](demos/README.md).
+**👉 [Try it live →](https://upsc-essay-evaluatorr.streamlit.app/)** (no install needed)
 
 ---
 
