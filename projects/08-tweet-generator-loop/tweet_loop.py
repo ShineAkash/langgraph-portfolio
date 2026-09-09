@@ -6,6 +6,7 @@ Demonstrates a self-correcting loop with a termination guard.
 """
 
 import operator
+import os
 from dotenv import load_dotenv
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_groq import ChatGroq
@@ -14,8 +15,9 @@ from pydantic import BaseModel, Field
 from typing import TypedDict, Literal, Annotated
 
 load_dotenv()
-generative_model = ChatGroq(model="llama-3.1-8b-instant")
-evaluation_model = ChatGroq(model="llama-3.3-70b-versatile")
+_default_model = os.environ["GROQ_MODEL"]
+generative_model = ChatGroq(model=os.getenv("GROQ_GENERATION_MODEL", _default_model))
+evaluation_model = ChatGroq(model=os.getenv("GROQ_EVALUATION_MODEL", _default_model))
 
 
 # Structured evaluator

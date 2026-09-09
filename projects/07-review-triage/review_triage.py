@@ -5,6 +5,8 @@ reply or run a deeper diagnosis and write a negative reply.
 Demonstrates Pydantic-based structured output and a 2-way branch.
 """
 
+import os
+
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langgraph.graph import START, END, StateGraph
@@ -12,7 +14,7 @@ from pydantic import BaseModel, Field
 from typing import TypedDict, Literal
 
 load_dotenv()
-model = ChatGroq(model="llama-3.3-70b-versatile")
+model = ChatGroq(model=os.environ["GROQ_MODEL"])
 
 
 # Structured output schemas

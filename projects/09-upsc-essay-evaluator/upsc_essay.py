@@ -7,6 +7,7 @@ Demonstrates fan-out + fan-in with `operator.add` to merge scores.
 """
 
 import operator
+import os
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langgraph.graph import START, END, StateGraph
@@ -14,7 +15,7 @@ from pydantic import BaseModel, Field
 from typing import TypedDict, Annotated
 
 load_dotenv()
-model = ChatGroq(model="llama-3.3-70b-versatile")
+model = ChatGroq(model=os.environ["GROQ_MODEL"])
 
 
 # Structured output for each individual evaluator

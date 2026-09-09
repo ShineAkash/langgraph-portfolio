@@ -76,7 +76,7 @@ etc.): many specialised critics running concurrently, then aggregation.
 git clone <this-repo>
 cd <this-repo>
 pip install -r requirements.txt
-cp .env.example .env        # then add your GROQ_API_KEY
+cp .env.example .env        # then add your GROQ_API_KEY and choose GROQ_MODEL
 ```
 
 Run any project directly:

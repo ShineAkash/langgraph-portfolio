@@ -4,13 +4,15 @@ Two sequential LLM calls: outline → full blog post. Demonstrates
 feeding a downstream node from an upstream node's output via state.
 """
 
+import os
+
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langgraph.graph import START, END, StateGraph
 from typing import TypedDict
 
 load_dotenv()
-model = ChatGroq(model="openai/gpt-oss-120b")
+model = ChatGroq(model=os.environ["GROQ_MODEL"])
 
 
 # 1. State

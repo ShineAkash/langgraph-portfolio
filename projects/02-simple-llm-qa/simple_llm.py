@@ -14,7 +14,7 @@ load_dotenv()
 
 # OpenRouter key is used here (project experiments with multiple providers)
 _ = os.getenv("OPENROUTER_API_KEY")
-model = ChatGroq(model="openai/gpt-oss-120b")
+model = ChatGroq(model=os.environ["GROQ_MODEL"])
 
 
 # 1. State

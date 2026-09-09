@@ -5,6 +5,8 @@ checkpointing. Demonstrates the standard pattern for any
 multi-turn LangGraph application.
 """
 
+import os
+
 from dotenv import load_dotenv
 from langchain_core.messages import BaseMessage, HumanMessage
 from langchain_groq import ChatGroq
@@ -14,7 +16,7 @@ from langgraph.graph.message import add_messages
 from typing import TypedDict, Annotated
 
 load_dotenv()
-llm = ChatGroq(model="llama-3.1-8b-instant")
+llm = ChatGroq(model=os.environ["GROQ_MODEL"])
 
 
 # 1. State — `add_messages` is the canonical message reducer

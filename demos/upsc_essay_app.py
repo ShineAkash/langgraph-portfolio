@@ -5,7 +5,7 @@ Run locally:
 
 Deploy:
     Push to GitHub → https://share.streamlit.io → "New app" → pick this repo.
-    Add GROQ_API_KEY under "Secrets" (advanced settings).
+    Add GROQ_API_KEY and GROQ_MODEL under "Secrets" (advanced settings).
     Done — share the URL.
 """
 
@@ -28,6 +28,7 @@ st.set_page_config(
 # Load GROQ_API_KEY from Streamlit secrets (cloud) or .env (local).
 try:
     os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
+    os.environ["GROQ_MODEL"] = st.secrets["GROQ_MODEL"]
 except Exception:  # noqa: BLE001 — local dev, no secrets.toml
     load_dotenv()
 
@@ -42,11 +43,12 @@ def _build_structured_model(model_name: str):
     return ChatGroq(model=model_name).with_structured_output(EvalutationSchema)
 
 
-# Ordered fallback list. Some models occasionally fail Groq's tool-use parser;
-# we retry, then fall back to a smaller, more stable model.
-_MODEL_CHAIN = (
-    "llama-3.3-70b-versatile",
-    "llama-3.1-8b-instant",
+# Ordered fallback list. Add optional comma-separated fallback model IDs through
+# GROQ_FALLBACK_MODELS; the primary model comes from GROQ_MODEL.
+_MODEL_CHAIN = (os.environ["GROQ_MODEL"],) + tuple(
+    model.strip()
+    for model in os.getenv("GROQ_FALLBACK_MODELS", "").split(",")
+    if model.strip()
 )
 
 
